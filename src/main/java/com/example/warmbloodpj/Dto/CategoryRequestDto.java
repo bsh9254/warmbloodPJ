@@ -5,8 +5,8 @@ import lombok.Getter;
 @Getter
 public class CategoryRequestDto {
 
-    private String dealCate;
-    private String financeCate;
+    /*private String dealCate;
+    private String financeCate;*/
     private String locationCate;
     private String propertyCate;
 }

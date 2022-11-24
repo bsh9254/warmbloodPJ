@@ -18,6 +18,6 @@ public class ProjectRequestDto {
     private String dueDate;
 
     private String location;
-
+    private String property;
     private List<String> tags;
 }

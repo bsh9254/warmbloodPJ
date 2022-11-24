@@ -5,9 +5,7 @@ import com.example.warmbloodpj.Dto.CategoryRequestDto;
 import com.example.warmbloodpj.Dto.ProjectRequestDto;
 import com.example.warmbloodpj.Dto.ProjectResponseDto;
 import com.example.warmbloodpj.Dto.ResponseDto;
-import com.example.warmbloodpj.Model.ErrorCode;
-import com.example.warmbloodpj.Model.Projects;
-import com.example.warmbloodpj.Model.Tag;
+import com.example.warmbloodpj.Model.*;
 import com.example.warmbloodpj.Repository.ProjectsRepository;
 import com.example.warmbloodpj.Repository.TagRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,12 +55,15 @@ public class ProjectsService {
     @Transactional
     public ResponseDto<?> addProjects(ProjectRequestDto projectRequestDto)
     {
+        Member member=Member.builder()
+                .authority(Authority.ROLE_USER)
+                .build();
         if(projectRequestDto.getName().length()>100)
         {
             return ResponseDto.is_Fail(ErrorCode.INVALID_LENGTH);
         }
 
-        Projects projects=new Projects(projectRequestDto);
+        Projects projects=new Projects(projectRequestDto,member);
         for(int i=0;i<projectRequestDto.getTags().size();i++)
         {
             Tag tag=Tag.builder().
@@ -88,26 +89,76 @@ public class ProjectsService {
     }
 
     public ResponseDto<?> getFromCategory(CategoryRequestDto categoryRequestDto){
-        List<Projects> projectsList1;
+        List<Projects> projectsList=projectsRepository.findAll();;
+        List<Projects> projectsBy;
+
         List<ProjectResponseDto> responseDtos =new ArrayList<>();
 
-        /*if(categoryRequestDto.getDealCate().equals(null))
+        projectsBy = sortByLoca(categoryRequestDto, projectsList);
+        projectsBy = sortByPro(categoryRequestDto, projectsBy);
+        for(Projects projects:projectsBy)
         {
-            projectsList1=projectsRepository.findAll();
-        }
-        else {
-
-            for(Projects projects1:projectsList1)
+            List<Tag> tagList=projects.getTags();
+            List<String> tagName=new ArrayList<>();
+            for(Tag tag:tagList)
             {
-
-
+                tagName.add(tag.getTagName());
             }
-        }*/
-        //딜 카테고리?? 금융 유형??
 
+            responseDtos.add(ProjectResponseDto.builder()
+                    .id(projects.getId())
+                    .name(projects.getName())
+                    .price(projects.getPrice())
+                    .dealClosingDate(projects.getDealClosingDate())
+                    .dueDate(projects.getDueDate())
+                    .location(projects.getLocation())
+                    .tags(tagName)
+                    .build());
+        }
 
+        //딜 카테고리?? 금융 유형?? 뭔지 몰라서 제외
+        //카테고리는 위치와, 자산 유형만
 
         return ResponseDto.is_Success(responseDtos);
+    }
+
+    private static List<Projects> sortByPro(CategoryRequestDto categoryRequestDto, List<Projects> projectsByLoca) {
+        List<Projects> projectsByPro;
+        if(!categoryRequestDto.getPropertyCate().equals("전체"))
+        {
+            projectsByPro=new ArrayList<>();
+            for(Projects projects: projectsByLoca)
+            {
+                if(projects.getProperty().equals(categoryRequestDto.getPropertyCate()))
+                {
+                    projectsByPro.add(projects);
+                }
+            }
+        }
+        else{
+            projectsByPro= projectsByLoca;
+        }
+        return projectsByPro;
+    }
+
+    private static List<Projects> sortByLoca(CategoryRequestDto categoryRequestDto, List<Projects> projectsList) {
+        List<Projects> projectsByLoca;
+        if(!categoryRequestDto.getLocationCate().equals("전체"))
+        {
+            projectsByLoca=new ArrayList<>();
+            for(Projects projects: projectsList)
+            {
+                if(projects.getLocation().equals(categoryRequestDto.getLocationCate()))
+                {
+                    projectsByLoca.add(projects);
+                }
+            }
+        }
+        else
+        {
+            projectsByLoca= projectsList;
+        }
+        return projectsByLoca;
     }
 
 }

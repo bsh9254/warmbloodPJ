@@ -32,17 +32,28 @@ public class Projects {
     @Column(nullable = false)
     private String location;
 
+    @Column(nullable = false)
+    private String property;
+
     @OneToMany(mappedBy = "projects", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Tag> tags;
 
-    public Projects(ProjectRequestDto projectRequestDto)
+    @OneToMany(mappedBy = "projects", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DealOffer> offers;
+
+    @JoinColumn(name = "member_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Member member;
+
+    public Projects(ProjectRequestDto projectRequestDto,Member member)
     {
         this.name=projectRequestDto.getName();
         this.price=projectRequestDto.getPrice();
         this.dealClosingDate= projectRequestDto.getDealClosingDate();
         this.dueDate= projectRequestDto.getDueDate();
         this.location=projectRequestDto.getLocation();
-
+        this.property=projectRequestDto.getProperty();
+        this.member=member;
     }
 
     public void update(ProjectRequestDto projectRequestDto)
